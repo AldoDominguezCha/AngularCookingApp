@@ -4,9 +4,7 @@ import { Store } from '@ngrx/store';
 
 import { Recipe } from "./recipe.model";
 import { Ingredient } from '../shared/ingredient.model';
-import { ShoppingListService } from '../shopping-list/shopping-list.service';
 import { AddIngredients } from '../shared/store/actions/shopping-list.generators';
-import { ShoppingListState } from '../shared/store/reducers/shopping-list.reducer';
 import { AppState } from '../shared/store/app-state.interface';
 
 @Injectable({ providedIn: 'root' })

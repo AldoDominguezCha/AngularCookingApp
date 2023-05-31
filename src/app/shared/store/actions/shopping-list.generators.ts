@@ -1,6 +1,6 @@
 import { Action } from '@ngrx/store';
 
-import { ADD_INGREDIENT, ADD_INGREDIENTS, DELETE_INGREDIENT, UPDATE_INGREDIENT } from './action-types.contants';
+import { ADD_INGREDIENT, ADD_INGREDIENTS, DELETE_INGREDIENT, START_EDIT, STOP_EDIT, UPDATE_INGREDIENT } from './action-types.contants';
 import { Ingredient } from '../../ingredient.model';
 
 //Shopping list
@@ -17,12 +17,26 @@ export class AddIngredients implements Action {
 
 export class UpdateIngredient implements Action {
   readonly type = UPDATE_INGREDIENT;
-  constructor(public payload: { id: number, ingredient: Ingredient }) {}
+  constructor(public payload: Ingredient) {}
 }
 
 export class DeleteIngredient implements Action {
   readonly type = DELETE_INGREDIENT;
+}
+
+export class StartIngredientEdit {
+  readonly type = START_EDIT;
   constructor(public payload: number) {}
 }
 
-export type ShoppingListAction = AddIngredient | AddIngredients | UpdateIngredient | DeleteIngredient;
+export class StopIngredientEdit {
+  readonly type = STOP_EDIT;
+}
+
+export type ShoppingListAction =
+  AddIngredient
+  | AddIngredients
+  | UpdateIngredient
+  | DeleteIngredient
+  | StartIngredientEdit
+  | StopIngredientEdit;

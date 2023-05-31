@@ -1,5 +1,5 @@
 import { Ingredient } from "../../ingredient.model";
-import { ADD_INGREDIENT, ADD_INGREDIENTS, DELETE_INGREDIENT, UPDATE_INGREDIENT } from "../actions/action-types.contants";
+import { ADD_INGREDIENT, ADD_INGREDIENTS, DELETE_INGREDIENT, START_EDIT, STOP_EDIT, UPDATE_INGREDIENT } from "../actions/action-types.contants";
 import { ShoppingListAction } from "../actions/shopping-list.generators";
 
 export interface ShoppingListState {
@@ -32,16 +32,32 @@ export function shoppingListReducer(state = initialState, action: ShoppingListAc
       };
     case UPDATE_INGREDIENT:
       const ingredients = [...state.ingredients];
-      ingredients.splice(action.payload.id, 1, action.payload.ingredient);
+      ingredients.splice(state.editedIngredientIndex, 1, action.payload);
       return {
         ...state,
-        ingredients
+        ingredients,
+        editedIngredientIndex: null,
+        editedIngredient: null
       };
     case DELETE_INGREDIENT:
       return {
         ...state,
-        ingredients: [...state.ingredients].filter((ing, idx) => idx !== action.payload)
+        ingredients: [...state.ingredients].filter((ing, idx) => idx !== state.editedIngredientIndex),
+        editedIngredientIndex: null,
+        editedIngredient: null
       };
+    case START_EDIT:
+      return {
+        ...state,
+        editedIngredientIndex: action.payload,
+        editedIngredient: {...state.ingredients[action.payload]}
+      }
+    case STOP_EDIT:
+      return {
+        ...state,
+        editedIngredientIndex: null,
+        editedIngredient: null
+      }
     default:
       return state;
   }
