@@ -1,5 +1,5 @@
 import { Ingredient } from "../../ingredient.model";
-import { ADD_INGREDIENT, ADD_INGREDIENTS, DELETE_INGREDIENT, START_EDIT, STOP_EDIT, UPDATE_INGREDIENT } from "../actions/action-types.contants";
+import { ADD_INGREDIENT, ADD_INGREDIENTS, DELETE_INGREDIENT, SHOPPING_LIST_START_EDIT, SHOPPING_LIST_STOP_EDIT, UPDATE_INGREDIENT } from "../actions/action-types.contants";
 import { ShoppingListAction } from "../actions/shopping-list.generators";
 
 export interface ShoppingListState {
@@ -46,13 +46,13 @@ export function shoppingListReducer(state = initialState, action: ShoppingListAc
         editedIngredientIndex: null,
         editedIngredient: null
       };
-    case START_EDIT:
+    case SHOPPING_LIST_START_EDIT:
       return {
         ...state,
         editedIngredientIndex: action.payload,
         editedIngredient: {...state.ingredients[action.payload]}
       }
-    case STOP_EDIT:
+    case SHOPPING_LIST_STOP_EDIT:
       return {
         ...state,
         editedIngredientIndex: null,

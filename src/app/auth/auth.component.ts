@@ -1,12 +1,13 @@
-import { Component, OnDestroy, OnInit, ViewChild } from "@angular/core";
+import { Component, OnInit, ViewChild } from "@angular/core";
+import { Store } from "@ngrx/store";
+import { Subscription } from "rxjs";
 import { FormControl, FormGroup, Validators } from "@angular/forms";
+
 import { getPasswordMinLengthValidator } from "../shared/customValidators/auth-form-validators";
-import { AuthService } from "./auth.service";
-import { AuthResponse } from "./auth-response.interface";
-import { Observable, Subscription } from "rxjs";
-import { Router } from "@angular/router";
-//import { AlertComponent } from "../shared/components/alert/alert.component";
 import { PlaceholderDirective } from "../shared/directives/placeholder.directive";
+import { AppState } from "../shared/store/app-state.interface";
+import { CleanAuthenticationError, LoginStart, SignupStart } from "../shared/store/actions/auth.generators";
+import { AuthState } from "../shared/store/reducers/auth.reducer";
 
 @Component({
   selector: 'app-auth',
@@ -18,12 +19,10 @@ export class AuthComponent implements OnInit {
   isLoading = false;
   errorMessage: string = null;
   @ViewChild(PlaceholderDirective, { static: false }) alertContainer: PlaceholderDirective;
-  //private closeAlertSubscription: Subscription = null;
+  private authStateSubscription: Subscription = null;
 
   constructor(
-    private authService: AuthService,
-    private router: Router,
-    //private componentFactoryResolver: ComponentFactoryResolver
+    private store: Store<AppState>,
   ) {}
 
   ngOnInit(): void {
@@ -31,12 +30,19 @@ export class AuthComponent implements OnInit {
       'email': new FormControl(null, [Validators.required, Validators.email]),
       'password': new FormControl(null, [Validators.required, getPasswordMinLengthValidator(6)])
     });
+
+    this.authStateSubscription = this.authStateSubscription = this.store.select('auth')
+      .subscribe({
+        next: (authState: AuthState) => {
+          this.isLoading = authState.loading;
+          this.errorMessage = authState.authError;
+        }
+      });
   }
 
-  /* ngOnDestroy(): void {
-    if (this.closeAlertSubscription)
-      this.closeAlertSubscription.unsubscribe();
-  } */
+  ngOnDestroy(): void {
+    this.authStateSubscription.unsubscribe();
+  }
 
   onSwitchMode() {
     if (this.formMode === 'login') {
@@ -49,42 +55,15 @@ export class AuthComponent implements OnInit {
   onSubmit() {
     if (!this.authForm.valid) return;
 
-    const authObservable: Observable<AuthResponse> = this.formMode === 'signup'
-      ? this.authService.signUp(this.authForm.value)
-      : this.authService.logIn(this.authForm.value);
-
-    this.isLoading = true;
-
-    authObservable.subscribe({
-      next: (authData: AuthResponse) => {
-        this.errorMessage = null;
-        this.router.navigate(['/']);
-      },
-      error: (error: Error) => {
-        this.errorMessage = error.message;
-        //this.showErrorAlert(error.message);
-      },
-    })
-    .add(() => this.isLoading = false);
-
+    if (this.formMode === 'login') {
+      this.store.dispatch(new LoginStart(this.authForm.value));
+    } else {
+      this.store.dispatch(new SignupStart(this.authForm.value));
+    }
     this.authForm.reset();
   }
 
   onAlertClose() {
-    this.errorMessage = null;
+    this.store.dispatch(new CleanAuthenticationError());
   }
-
-  /* private showErrorAlert(message: string) {
-    const alertCmpFactory = this.componentFactoryResolver.resolveComponentFactory(AlertComponent);
-
-    const containerViewContainerRef = this.alertContainer.viewContainerRef;
-    containerViewContainerRef.clear();
-
-    const alertCmpRef = containerViewContainerRef.createComponent(alertCmpFactory);
-    alertCmpRef.instance.message = message;
-    this.closeAlertSubscription = alertCmpRef.instance.closeAlert.subscribe(() => {
-      this.closeAlertSubscription.unsubscribe();
-      containerViewContainerRef.clear();
-    });
-  } */
 }

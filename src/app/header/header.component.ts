@@ -1,8 +1,11 @@
-import { Component, EventEmitter, OnDestroy, OnInit, Output } from '@angular/core';
-import DataStorageService from '../shared/data-storage.service';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { Subscription } from 'rxjs';
-import { AuthService } from '../auth/auth.service';
-import { User } from '../auth/user.model';
+import { Store } from '@ngrx/store';
+
+import { AppState } from '../shared/store/app-state.interface';
+import { AuthState } from '../shared/store/reducers/auth.reducer';
+import { LogOut } from '../shared/store/actions/auth.generators';
+import { FetchRecipes, StoreRecipes } from '../shared/store/actions/recipes.generators';
 
 @Component({
   selector: 'app-header',
@@ -11,37 +14,32 @@ import { User } from '../auth/user.model';
 })
 export class HeaderComponent implements OnInit, OnDestroy {
   isAuthenticated: boolean = false;
-  userAuthSubscription: Subscription = null;
+  authSubscription: Subscription = null;
 
-  constructor(
-    private dataStorageService: DataStorageService,
-    private authService: AuthService
-    ) {}
+  constructor(private store: Store<AppState>) {}
 
   ngOnInit(): void {
-    this.userAuthSubscription = this.authService.userSubject.subscribe({
-      next: (user: User) => {
-        this.isAuthenticated = !!user;
+    this.authSubscription = this.store.select('auth').subscribe({
+      next: (authState: AuthState) => {
+        this.isAuthenticated = !!authState.user;
       }
     })
   }
 
   ngOnDestroy(): void {
-    this.userAuthSubscription.unsubscribe();
+    this.authSubscription.unsubscribe();
   }
 
   onSaveRecipes() {
-    this.dataStorageService.saveRecipes().subscribe(response => {
-      console.log('RECIPES SAVED. RESPONSE IS', response);
-    });
+    this.store.dispatch(new StoreRecipes());
   }
 
   onFetchData() {
-    this.dataStorageService.fetchRecipes().subscribe();
+    this.store.dispatch(new FetchRecipes());
   }
 
   onLogout() {
-    this.authService.logOut();
+    this.store.dispatch(new LogOut());
   }
 
 }
